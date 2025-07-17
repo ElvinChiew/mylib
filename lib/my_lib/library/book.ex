@@ -18,5 +18,6 @@ defmodule MyLib.Library.Book do
     book
     |> cast(attrs, [:title, :author, :isbn, :publish_at])
     |> validate_required([:title, :author, :isbn, :publish_at])
+    |> cast_assoc(:loan)
   end
 end

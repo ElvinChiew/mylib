@@ -18,7 +18,8 @@ defmodule MyLib.Accounts.User do
   @doc false
   def changeset(user, attrs) do
     user
-    |> cast(attrs, [:loan, :name, :age])
+    |> cast(attrs, [:name, :age])
     |> validate_required([:name, :age])
+    |> cast_assoc(:loan)
   end
 end

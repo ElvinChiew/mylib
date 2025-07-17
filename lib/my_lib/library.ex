@@ -7,6 +7,7 @@ defmodule MyLib.Library do
   alias MyLib.Repo
 
   alias MyLib.Library.Book
+  alias MyLib.Library.Loan
 
   @doc """
   Returns the list of books.
@@ -213,4 +214,14 @@ defmodule MyLib.Library do
     Loan.changeset(loan, attrs)
   end
 
+  def list_book_loan(opts \\ []) do
+    preload = Access.get(opts, :preload, [])
+
+    Loan
+    |> preload(^preload)
+    |> Repo.all()
+    #|> List.flatten()
+    #|> Enum.map(fn loan -> get_in(loan, [:book, :title]) end)
+    #|> Enum.reject(&is_nil/1)
+  end
 end
