@@ -16,6 +16,7 @@
   <:col :let={{_id, book}} label="Author">{book.author}</:col>
   <:col :let={{_id, book}} label="Isbn">{book.isbn}</:col>
   <:col :let={{_id, book}} label="Publish at">{book.publish_at}</:col>
+  
   <:action :let={{_id, book}}>
     <div class="sr-only">
       <.link navigate={~p"/books/#{book}"}>Show</.link>

@@ -27,5 +27,7 @@ defmodule MyLib.Library.Loan do
     #add :user_id and :book_id, remove returned_at from validate
     |> cast(attrs, [:user_id, :book_id, :borrowed_at, :due_at, :returned_at])
     |> validate_required([:user_id, :book_id, :borrowed_at, :due_at])
+    |> cast_assoc(:user)
+    |> cast_assoc(:book)
   end
 end

@@ -117,4 +117,11 @@ defmodule MyLib.Accounts do
   def change_user(%User{} = user, attrs \\ %{}) do
     User.changeset(user, attrs)
   end
+
+  def reduce_pipe(list) do
+    list
+     |> Enum.reduce([], fn sublist, result -> result ++ sublist end)
+     |> Enum.count()
+  end
+
 end
