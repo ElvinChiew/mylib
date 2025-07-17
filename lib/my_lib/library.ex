@@ -221,7 +221,24 @@ defmodule MyLib.Library do
     |> preload(^preload)
     |> Repo.all()
     #|> List.flatten()
-    #|> Enum.map(fn loan -> get_in(loan, [:book, :title]) end)
+    #Enum.map(fn loan -> get_in(loan, [:book, :title]) end)
+    |> Enum.map(fn loan ->
+      %{
+        user_id: loan.user_id,
+        book: loan.book.title
+      }
+    end)
+    |> Enum.map(fn %{book: title} -> title end)
+    |> Enum.reduce(%{},fn book_title, book_count_map ->
+      Map.update(
+        book_count_map,
+        book_title,
+        1,
+        fn existing_count ->
+          existing_count + 1
+        end
+      )
+    end)
     #|> Enum.reject(&is_nil/1)
   end
 end
