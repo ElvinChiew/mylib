@@ -18,6 +18,9 @@ defmodule MyLib.Credentials.CredentialToken do
     field :context, :string
     field :sent_to, :string
     belongs_to :credential, MyLib.Credentials.Credential
+    #has_one :credential_profile, MyLib.Credentials.CredentialProfile
+
+    #belongs_to :credential_profile, MyLib.Credentials.CredentialProfile
 
     timestamps(type: :utc_datetime, updated_at: false)
   end

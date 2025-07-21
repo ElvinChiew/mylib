@@ -4,6 +4,7 @@ defmodule MyLib.Credentials do
   """
 
   import Ecto.Query, warn: false
+  alias MyLib.Credentials.CredentialProfile
   alias MyLib.Repo
 
   alias MyLib.Credentials.{Credential, CredentialToken, CredentialNotifier}
@@ -23,7 +24,13 @@ defmodule MyLib.Credentials do
 
   """
   def get_credential_by_email(email) when is_binary(email) do
-    Repo.get_by(Credential, email: email)
+    Credential
+
+    |> Repo.get_by(email: email)
+    |> case do
+      nil -> nil
+      credential -> Repo.preload(credential, :credential_profile)
+    end
   end
 
   @doc """
@@ -40,7 +47,15 @@ defmodule MyLib.Credentials do
   """
   def get_credential_by_email_and_password(email, password)
       when is_binary(email) and is_binary(password) do
-    credential = Repo.get_by(Credential, email: email)
+    #credential = Repo.get_by(Credential, email: email)
+    credential =
+      Credential
+      |> Repo.get_by(email: email)
+      |> case do
+        nil -> nil
+        cred -> Repo.preload(cred, :credential_profile)
+      end
+
     if Credential.valid_password?(credential, password), do: credential
   end
 
@@ -58,7 +73,11 @@ defmodule MyLib.Credentials do
       ** (Ecto.NoResultsError)
 
   """
-  def get_credential!(id), do: Repo.get!(Credential, id)
+  def get_credential!(id) do
+    Credential
+    |> Repo.get!(id)
+    |> Repo.preload(:credential_profile)
+  end
 
   ## Credential registration
 
@@ -231,7 +250,11 @@ defmodule MyLib.Credentials do
   """
   def get_credential_by_session_token(token) do
     {:ok, query} = CredentialToken.verify_session_token_query(token)
-    Repo.one(query)
+
+    query
+    |> join(:left, [c], p in assoc(c, :credential_profile))
+    |> preload([c, p], credential_profile: p)
+    |> Repo.one()
   end
 
   @doc """
@@ -349,5 +372,31 @@ defmodule MyLib.Credentials do
       {:ok, %{credential: credential}} -> {:ok, credential}
       {:error, :credential, changeset, _} -> {:error, changeset}
     end
+  end
+
+  def get_credential_profile(credential) do
+    Repo.get_by(CredentialProfile, credential_id: credential.id )
+  end
+
+  def get_credential_with_profile(id) do
+    Credential
+    |> Repo.get!(id)
+    |> Repo.preload(:credential_profile)
+  end
+
+  def create_credential_profile(credential, attrs) do
+    %CredentialProfile{}
+    |> CredentialProfile.changeset(Map.put(attrs,"credential_id", credential.id))
+    |> Repo.insert()
+  end
+
+  def update_credential_profile(profile, attrs) do
+    profile
+    |> CredentialProfile.changeset(attrs)
+    |> Repo.update()
+  end
+
+  def change_credential_profile(profile \\ %CredentialProfile{}, attrs \\ %{}) do
+    CredentialProfile.changeset(profile, attrs)
   end
 end

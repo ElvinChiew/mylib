@@ -9,6 +9,7 @@ defmodule MyLib.Credentials.Credential do
     field :current_password, :string, virtual: true, redact: true
     field :confirmed_at, :utc_datetime
 
+    has_one :credential_profile, MyLib.Credentials.CredentialProfile
     timestamps(type: :utc_datetime)
   end
 
