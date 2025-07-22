@@ -2,6 +2,8 @@ defmodule MyLib.Credentials.Credential do
   use Ecto.Schema
   import Ecto.Changeset
 
+  alias MyLib.Credentials.CredentialProfile
+
   schema "credentials" do
     field :email, :string
     field :password, :string, virtual: true, redact: true
@@ -9,7 +11,8 @@ defmodule MyLib.Credentials.Credential do
     field :current_password, :string, virtual: true, redact: true
     field :confirmed_at, :utc_datetime
 
-    has_one :credential_profile, MyLib.Credentials.CredentialProfile
+    has_one :profile, CredentialProfile
+
     timestamps(type: :utc_datetime)
   end
 
@@ -68,9 +71,11 @@ defmodule MyLib.Credentials.Credential do
 
     if hash_password? && password && changeset.valid? do
       changeset
+      # If using Bcrypt, then further validate it is at most 72 bytes long
+      |> validate_length(:password, max: 72, count: :bytes)
       # Hashing could be done with `Ecto.Changeset.prepare_changes/2`, but that
       # would keep the database transaction open longer and hurt performance.
-      |> put_change(:hashed_password, Pbkdf2.hash_pwd_salt(password))
+      |> put_change(:hashed_password, Bcrypt.hash_pwd_salt(password))
       |> delete_change(:password)
     else
       changeset
@@ -133,15 +138,15 @@ defmodule MyLib.Credentials.Credential do
   Verifies the password.
 
   If there is no credential or the credential doesn't have a password, we call
-  `Pbkdf2.no_user_verify/0` to avoid timing attacks.
+  `Bcrypt.no_user_verify/0` to avoid timing attacks.
   """
   def valid_password?(%MyLib.Credentials.Credential{hashed_password: hashed_password}, password)
       when is_binary(hashed_password) and byte_size(password) > 0 do
-    Pbkdf2.verify_pass(password, hashed_password)
+    Bcrypt.verify_pass(password, hashed_password)
   end
 
   def valid_password?(_, _) do
-    Pbkdf2.no_user_verify()
+    Bcrypt.no_user_verify()
     false
   end
 
